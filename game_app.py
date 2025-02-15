@@ -16,7 +16,7 @@ def generate_ai_case():
     """
 
     response = client.chat.completions.create(
-        model="gpt-4",
+        model="GPT-4o mini",
         messages=[{"role": "system", "content": prompt}]
     )
 
