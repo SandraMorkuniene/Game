@@ -1,119 +1,90 @@
-
 import streamlit as st
-import random
+import openai
 import pandas as pd
-#import plotly.express as px
+import os
 
-# Initialize session state variables
+# Load OpenAI API Key
+openai.api_key = os.getenv("OPENAI_API_KEY")
+
+# Generate an AI-driven case using GPT-4 (Inspired by Real-World Money Laundering Cases)
+def generate_ai_case():
+    prompt = """
+    Create a detailed financial crime scenario inspired by real-world money laundering cases.
+    The case should include suspicious transactions, involved parties (companies, individuals, banks), 
+    and locations. Focus on realistic methods like shell companies, trade-based laundering, real estate purchases, or crypto mixing.
+    Provide enough detail for an investigator to analyze the scheme.
+    """
+    
+    response = openai.ChatCompletion.create(
+        model="gpt-4",
+        messages=[{"role": "system", "content": prompt}]
+    )
+    
+    return response["choices"][0]["message"]["content"]
+
+# Analyze player's response for multiple money laundering techniques
+def evaluate_response(player_answer, case_description):
+    prompt = f"""
+    The following is a financial crime case:
+
+    {case_description}
+
+    The player analyzed this case and identified the following money laundering techniques:
+    "{player_answer}"
+
+    Your task:
+    1. Identify **all possible money laundering techniques** in this case.
+    2. Compare the player's answer with these techniques.
+    3. Score the player's response from 0-100.
+    4. Provide feedback on what they got right, what they missed, and any hints for improvement.
+    5. If applicable, relate this case to a **real-world money laundering scandal**.
+
+    Return your response in a structured way: **Score (0-100)** + **Detailed Feedback**.
+    """
+
+    response = openai.ChatCompletion.create(
+        model="gpt-4",
+        messages=[{"role": "system", "content": prompt}]
+    )
+
+    return response["choices"][0]["message"]["content"]
+
+# Streamlit UI
+st.title("🕵️ AI Money Laundering Investigator")
+st.subheader("Analyze AI-generated financial crime cases and identify laundering techniques.")
+
+# Load AI-generated case
+if "current_case" not in st.session_state:
+    st.session_state.current_case = generate_ai_case()
+
+case_description = st.session_state.current_case
+st.header("📄 Case Report")
+st.write(case_description)
+
+# Player input (free form)
+player_answer = st.text_area("What money laundering techniques do you identify in this case?", "")
+
+# Submit button
+if st.button("Submit Analysis"):
+    if player_answer:
+        feedback = evaluate_response(player_answer, case_description)
+        st.subheader("📋 AI Feedback")
+        st.write(feedback)
+
+        # Button to load a new case
+        if st.button("Next Case"):
+            st.session_state.current_case = generate_ai_case()
+            st.experimental_rerun()
+    else:
+        st.warning("Please enter your analysis before submitting.")
+
+# Sidebar Stats
+st.sidebar.header("Game Stats")
 if "cases_solved" not in st.session_state:
     st.session_state.cases_solved = 0
-    st.session_state.suspicion = 0
-    st.session_state.case_number = 1
-    st.session_state.current_case = None
-    st.session_state.history = []
+if "correct_answers" not in st.session_state:
+    st.session_state.correct_answers = 0
 
-# Generate fake transaction data
-def generate_transactions():
-    num_transactions = random.randint(5, 15)
-    data = {
-        "Date": pd.date_range(start="2024-01-01", periods=num_transactions).strftime('%Y-%m-%d').tolist(),
-        "Amount": [random.randint(5000, 50000) for _ in range(num_transactions)],
-        "Destination": random.choices(["Shell Company", "Offshore Account", "Luxury Goods", "Legitimate Business"], k=num_transactions),
-    }
-    return pd.DataFrame(data)
-
-# Generate a new case
-def generate_case():
-    suspects = ["John Doe", "Maria Lopez", "Igor Petrov", "Chen Wei", "Carlos Mendes"]
-    schemes = ["Shell Companies", "Casinos", "Real Estate", "Trade-Based Laundering", "Offshore Accounts"]
-    locations = ["New York", "London", "Dubai", "Hong Kong", "Panama"]
-    
-    case = {
-        "suspect": random.choice(suspects),
-        "scheme": random.choice(schemes),
-        "location": random.choice(locations),
-        "transactions": generate_transactions(),
-        "risk_score": random.randint(20, 90),
-        "is_guilty": random.choice([True, False]),  # Some cases are false alarms!
-    }
-    return case
-
-# Start a new case if none exists
-if not st.session_state.current_case:
-    st.session_state.current_case = generate_case()
-
-# Display case details
-case = st.session_state.current_case
-st.title("🕵️ Financial Crimes Unit: Money Laundering Investigation")
-st.subheader(f"📂 Case #{st.session_state.case_number}")
-st.write(f"**Suspect:** {case['suspect']}")
-st.write(f"**Suspicious Scheme:** {case['scheme']}")
-st.write(f"**Location:** {case['location']}")
-st.write(f"**Risk Score:** {case['risk_score']}%")
-
-# Show transaction data
-st.subheader("📊 Transaction Analysis")
-st.dataframe(case["transactions"])
-
-# Plot transaction amounts
-#fig = px.bar(case["transactions"], x="Date", y="Amount", color="Destination", title="Transaction Flow")
-#t.plotly_chart(fig)
-
-# Player decisions
-st.subheader("What action will you take?")
-col1, col2, col3 = st.columns(3)
-
-with col1:
-    if st.button("📊 Analyze Transactions"):
-        if case['risk_score'] > 50:
-            st.success("Red flags detected! High-risk transactions found.")
-        else:
-            st.warning("Transactions appear normal. Need more evidence.")
-
-with col2:
-    if st.button("🔎 Conduct Surveillance"):
-        if case['is_guilty']:
-            st.success("Surveillance confirms illegal activities!")
-            case['risk_score'] += 20
-        else:
-            st.warning("Nothing suspicious found.")
-
-with col3:
-    if st.button("🚔 Freeze Accounts & Arrest"):
-        if case["is_guilty"] and case["risk_score"] > 50:
-            st.success(f"🚨 {case['suspect']} was arrested! Case closed.")
-            st.session_state.cases_solved += 1
-            st.session_state.history.append(f"Case #{st.session_state.case_number}: {case['suspect']} caught")
-        elif not case["is_guilty"]:
-            st.error("❌ Wrongful arrest! Your reputation suffers.")
-            st.session_state.suspicion += 15
-            st.session_state.history.append(f"Case #{st.session_state.case_number}: Wrongful arrest")
-        else:
-            st.error("❌ Not enough evidence! The suspect escaped.")
-            st.session_state.suspicion += 10
-            st.session_state.history.append(f"Case #{st.session_state.case_number}: Suspect escaped")
-
-        # Move to next case
-        st.session_state.case_number += 1
-        st.session_state.current_case = generate_case()
-
-# Sidebar with stats
-st.sidebar.header("📊 Investigator Stats")
 st.sidebar.write(f"✅ Cases Solved: {st.session_state.cases_solved}")
-st.sidebar.write(f"⚠️ Suspicion Level: {st.session_state.suspicion}%")
+st.sidebar.write(f"🏆 Correct Answers: {st.session_state.correct_answers}")
 
-# Show history
-st.sidebar.subheader("📜 Case History")
-for entry in st.session_state.history:
-    st.sidebar.write(entry)
-
-# Endgame scenarios
-if st.session_state.suspicion >= 50:
-    st.error("❌ Your division has been shut down due to too many failed investigations! Game Over.")
-    if st.button("🔄 Restart Game"):
-        st.session_state.cases_solved = 0
-        st.session_state.suspicion = 0
-        st.session_state.case_number = 1
-        st.session_state.current_case = None
-        st.session_state.history = []
-        st.experimental_rerun()
