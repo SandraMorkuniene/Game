@@ -2,7 +2,7 @@
 import streamlit as st
 import random
 import pandas as pd
-import plotly.express as px
+#import plotly.express as px
 
 # Initialize session state variables
 if "cases_solved" not in st.session_state:
@@ -56,8 +56,8 @@ st.subheader("📊 Transaction Analysis")
 st.dataframe(case["transactions"])
 
 # Plot transaction amounts
-fig = px.bar(case["transactions"], x="Date", y="Amount", color="Destination", title="Transaction Flow")
-st.plotly_chart(fig)
+#fig = px.bar(case["transactions"], x="Date", y="Amount", color="Destination", title="Transaction Flow")
+#t.plotly_chart(fig)
 
 # Player decisions
 st.subheader("What action will you take?")
