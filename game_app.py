@@ -3,8 +3,8 @@ import openai
 import pandas as pd
 import os
 
-# Load OpenAI API Key
-openai.api_key = os.getenv("OPENAI_API_KEY")
+# Initialize OpenAI client
+client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # Generate an AI-driven case using GPT-4 (Inspired by Real-World Money Laundering Cases)
 def generate_ai_case():
@@ -14,13 +14,13 @@ def generate_ai_case():
     and locations. Focus on realistic methods like shell companies, trade-based laundering, real estate purchases, or crypto mixing.
     Provide enough detail for an investigator to analyze the scheme.
     """
-    
-    response = openai.ChatCompletion.create(
+
+    response = client.chat.completions.create(
         model="gpt-4",
         messages=[{"role": "system", "content": prompt}]
     )
-    
-    return response["choices"][0]["message"]["content"]
+
+    return response.choices[0].message.content
 
 # Analyze player's response for multiple money laundering techniques
 def evaluate_response(player_answer, case_description):
@@ -42,12 +42,12 @@ def evaluate_response(player_answer, case_description):
     Return your response in a structured way: **Score (0-100)** + **Detailed Feedback**.
     """
 
-    response = openai.ChatCompletion.create(
+    response = client.chat.completions.create(
         model="gpt-4",
         messages=[{"role": "system", "content": prompt}]
     )
 
-    return response["choices"][0]["message"]["content"]
+    return response.choices[0].message.content
 
 # Streamlit UI
 st.title("🕵️ AI Money Laundering Investigator")
@@ -87,4 +87,3 @@ if "correct_answers" not in st.session_state:
 
 st.sidebar.write(f"✅ Cases Solved: {st.session_state.cases_solved}")
 st.sidebar.write(f"🏆 Correct Answers: {st.session_state.correct_answers}")
-
