@@ -14,11 +14,10 @@ def generate_ai_case():
     Focus on unusual patterns in the transactions and business operations, without explicitly naming any of the techniques.
 
     The case should involve:
-    - Multiple entities with complex relationships across different countries.
     - Unusual financial transactions such as large or rapid movements of money, or payments with no apparent business rationale.
     - Inconsistencies in business activities and ownership structures that raise questions.
     - A network of companies and individuals engaged in activities that appear to be legitimate, but are potentially masking illegal behavior.
-    - Use of real estate, international payments, and digital assets as part of the financial transactions.
+    - Combinations of topics such as shell companies, money mules, structuring, smuggling, document forgery, virtual assets laundering, cross-boarder money laundering, trade finance laundering, trade-based laundering, real estate laundering real estate, international payments as part of the financial transactions.
 
     The description should **not** mention specific techniques like "trade-based laundering" or "shell companies," but provide enough detail for an investigator to **spot** the suspicious activities. Focus on subtle clues such as:
     - Unexplained or overly complex ownership structures.
@@ -31,7 +30,7 @@ def generate_ai_case():
 
     response = client.chat.completions.create(
         model="gpt-4o-mini",
-        max_tokens=500,
+        max_tokens=800,
         temperature=0.7,
         messages=[{"role": "system", "content": prompt}]
     )
