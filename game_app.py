@@ -5,12 +5,17 @@ import os
 # Initialize OpenAI client
 client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
+# Function to clean AI response (fix spacing issues)
+def clean_text(text):
+    import re
+    return re.sub(r'(\w)([A-Z])', r'\1 \2', text)  # Adds space before uppercase letters
+
 # Generate an AI-driven case
 def generate_ai_case():
     prompt = """
     Write a detailed narrative about a complex financial operation involving multiple businesses, individuals, and jurisdictions. 
     The story should describe business activities, financial transactions, and relationships as they would appear to an observer, without explicitly stating what is suspicious. 
-    Keep the description concise but informative, under 400 words. Focus on key financial transactions and operational details without excessive background information.
+    Keep the description concise but informative, under 500 words. Focus on key financial transactions and operational details without excessive background information.
 
     The case should focus on realistic details about how the operation functions, including:
 
@@ -36,9 +41,9 @@ def generate_ai_case():
         messages=[{"role": "system", "content": prompt}]
     )
 
-    return response.choices[0].message.content
+    return clean_text(response.choices[0].message.content)  # Fix formatting issues
 
-# Analyze player's response for multiple money laundering techniques
+# Analyze player's response for money laundering techniques
 def evaluate_response(player_answer, case_description):
     prompt = f"""
     The following is a financial crime case:
@@ -65,13 +70,15 @@ def evaluate_response(player_answer, case_description):
 
     return response.choices[0].message.content
 
-# Initialize session state for case tracking
+# Initialize session state
 if "current_case" not in st.session_state:
     st.session_state.current_case = generate_ai_case()
 if "cases_solved" not in st.session_state:
     st.session_state.cases_solved = 0
 if "correct_answers" not in st.session_state:
     st.session_state.correct_answers = 0
+if "player_answer" not in st.session_state:
+    st.session_state.player_answer = ""
 
 # Streamlit UI
 st.title("🕵️ AI Money Laundering Investigator")
@@ -81,15 +88,19 @@ st.subheader("Analyze AI-generated financial crime cases and identify laundering
 st.header("📄 Case Report")
 st.write(st.session_state.current_case)
 
-# Player input (free form)
-player_answer = st.text_area("What money laundering techniques do you identify in this case?", "")
+# Player input
+player_answer = st.text_area(
+    "What money laundering techniques do you identify in this case?", 
+    value=st.session_state.player_answer,  # Pre-fill with session value
+    key="player_input"
+)
 
 # Submit button
 if st.button("Submit Analysis"):
     if player_answer:
         feedback = evaluate_response(player_answer, st.session_state.current_case)
         
-        # Extract the score from AI feedback
+        # Extract score from AI feedback
         try:
             score = int([s for s in feedback.split() if s.isdigit()][0])  # Extract first number as score
         except:
@@ -100,13 +111,16 @@ if st.button("Submit Analysis"):
         if score >= 50:  # Example threshold for a "correct" answer
             st.session_state.correct_answers += 1
 
+        st.session_state.player_answer = player_answer  # Store player input
+
         st.subheader("📋 AI Feedback")
         st.write(feedback)
 
 # Button to load a new case
 if st.button("Next Case"):
     st.session_state.current_case = generate_ai_case()
-    st.rerun()  # Force refresh to show new case
+    st.session_state.player_answer = ""  # Clear player input
+    st.rerun()  # Reload UI with new case and empty input
 
 # Sidebar Stats
 st.sidebar.header("Game Stats")
