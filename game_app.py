@@ -106,7 +106,7 @@ if st.button("Submit Analysis"):
 # Button to load a new case
 if st.button("Next Case"):
     st.session_state.current_case = generate_ai_case()
-    st.experimental_rerun()  # Force refresh to show new case
+    st.rerun()  # Force refresh to show new case
 
 # Sidebar Stats
 st.sidebar.header("Game Stats")
