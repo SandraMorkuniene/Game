@@ -9,7 +9,9 @@ client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 # Generate an AI-driven case using GPT-4 (Inspired by Real-World Money Laundering Cases)
 def generate_ai_case():
     prompt = """
-    Write a detailed narrative about a complex financial operation involving multiple businesses, individuals, and jurisdictions. The story should describe business activities, financial transactions, and relationships as they would appear to an observer, without explicitly stating what is suspicious.
+    Write a detailed narrative about a complex financial operation involving multiple businesses, individuals, and jurisdictions. 
+    The story should describe business activities, financial transactions, and relationships as they would appear to an observer, without explicitly stating what is suspicious. 
+    Keep the description concise but informative, under 600 words. Focus on key financial transactions and operational details without excessive background information.
 
 The case should focus on realistic details about how the operation functions, including:
 
