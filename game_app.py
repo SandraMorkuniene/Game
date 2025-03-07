@@ -9,23 +9,22 @@ client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 # Generate an AI-driven case using GPT-4 (Inspired by Real-World Money Laundering Cases)
 def generate_ai_case():
     prompt = """
-    Create a detailed financial crime scenario based on real-world money laundering cases, focusing on the **suspicious activities** rather than **techniques**.
-    The scenario should involve multiple parties (companies, individuals, banks) and locations, but avoid directly naming specific financial crime techniques. Instead, describe suspicious behavior and activities that would indicate illicit operations. 
-    Focus on unusual patterns in the transactions and business operations, without explicitly naming any of the techniques.
+    Write a detailed narrative about a complex financial operation involving multiple businesses, individuals, and jurisdictions. The story should describe business activities, financial transactions, and relationships as they would appear to an observer, without explicitly stating what is suspicious.
 
-    The case should involve:
-    - Unusual financial transactions such as large or rapid movements of money, or payments with no apparent business rationale.
-    - Inconsistencies in business activities and ownership structures that raise questions.
-    - A network of companies and individuals engaged in activities that appear to be legitimate, but are potentially masking illegal behavior.
-    - Combinations of topics such as shell companies, money mules, structuring, smuggling, document forgery, virtual assets laundering, cross-boarder money laundering, trade finance laundering, trade-based laundering, real estate laundering real estate, international payments as part of the financial transactions.
+The case should focus on realistic details about how the operation functions, including:
 
-    The description should **not** mention specific techniques like "trade-based laundering" or "shell companies," but provide enough detail for an investigator to **spot** the suspicious activities. Focus on subtle clues such as:
-    - Unexplained or overly complex ownership structures.
-    - Over-invoicing or under-invoicing of goods or services.
-    - Transactions flowing through countries with minimal or opaque financial regulations.
-    - Use of third-party companies with no clear business purpose or related activities.
+The nature of the businesses involved and how they interact financially.
+The flow of funds, including major transactions, partnerships, and expansion efforts.
+Ownership structures, operational decisions, and how different entities justify their financial movements.
+The scenario should be told as a realistic business case, not an analysis. Avoid phrases like "this is suspicious" or bullet-pointed red flags. Instead, provide a complete narrative where an investigator could later identify concerns based on the details provided.
 
-    Provide a detailed scenario, and let the investigator deduce the potential suspicious techniques from the activities described.
+Example approach:
+
+Describe a company's rapid rise and how its financials evolved.
+Show transactions between multiple parties without explicitly stating they are unusual.
+Introduce complex relationships between entities without saying they are suspicious.
+Let the inconsistencies in the business activities become evident only through storytelling rather than direct analysis.
+The goal is to create a scenario where the reader must piece together what might be wrong, rather than having the issues directly pointed out.
     """
 
     response = client.chat.completions.create(
