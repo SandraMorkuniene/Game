@@ -118,8 +118,8 @@ if st.button("Submit Analysis"):
 
 # Button to load a new case
 if st.button("Next Case"):
-    st.session_state.current_case = generate_ai_case()
     st.session_state.player_answer = ""  # Clear player input
+    st.session_state.current_case = generate_ai_case()
     st.rerun()  # Reload UI with new case and empty input
 
 # Sidebar Stats
