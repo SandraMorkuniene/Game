@@ -1,32 +1,32 @@
 import streamlit as st
 import openai
-import pandas as pd
 import os
 
 # Initialize OpenAI client
 client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-# Generate an AI-driven case using GPT-4 (Inspired by Real-World Money Laundering Cases)
+# Generate an AI-driven case
 def generate_ai_case():
     prompt = """
     Write a detailed narrative about a complex financial operation involving multiple businesses, individuals, and jurisdictions. 
     The story should describe business activities, financial transactions, and relationships as they would appear to an observer, without explicitly stating what is suspicious. 
-    Keep the description concise but informative, under 600 words. Focus on key financial transactions and operational details without excessive background information.
+    Keep the description concise but informative, under 400 words. Focus on key financial transactions and operational details without excessive background information.
 
-The case should focus on realistic details about how the operation functions, including:
+    The case should focus on realistic details about how the operation functions, including:
 
-The nature of the businesses involved and how they interact financially.
-The flow of funds, including major transactions, partnerships, and expansion efforts.
-Ownership structures, operational decisions, and how different entities justify their financial movements.
-The scenario should be told as a realistic business case, not an analysis. Avoid phrases like "this is suspicious" or bullet-pointed red flags. Instead, provide a complete narrative where an investigator could later identify concerns based on the details provided.
+    - The nature of the businesses involved and how they interact financially.
+    - The flow of funds, including major transactions, partnerships, and expansion efforts.
+    - Ownership structures, operational decisions, and how different entities justify their financial movements.
 
-Example approach:
+    The scenario should be told as a realistic business case, not an analysis. Avoid phrases like "this is suspicious" or bullet-pointed red flags. Instead, provide a complete narrative where an investigator could later identify concerns based on the details provided.
 
-Describe a company's rapid rise and how its financials evolved.
-Show transactions between multiple parties without explicitly stating they are unusual.
-Introduce complex relationships between entities without saying they are suspicious.
-Let the inconsistencies in the business activities become evident only through storytelling rather than direct analysis.
-The goal is to create a scenario where the reader must piece together what might be wrong, rather than having the issues directly pointed out.
+    Example approach:
+    - Describe a company's rapid rise and how its financials evolved.
+    - Show transactions between multiple parties without explicitly stating they are unusual.
+    - Introduce complex relationships between entities without saying they are suspicious.
+    - Let the inconsistencies in the business activities become evident only through storytelling rather than direct analysis.
+    
+    The goal is to create a scenario where the reader must piece together what might be wrong, rather than having the issues directly pointed out.
     """
 
     response = client.chat.completions.create(
@@ -65,17 +65,21 @@ def evaluate_response(player_answer, case_description):
 
     return response.choices[0].message.content
 
+# Initialize session state for case tracking
+if "current_case" not in st.session_state:
+    st.session_state.current_case = generate_ai_case()
+if "cases_solved" not in st.session_state:
+    st.session_state.cases_solved = 0
+if "correct_answers" not in st.session_state:
+    st.session_state.correct_answers = 0
+
 # Streamlit UI
 st.title("🕵️ AI Money Laundering Investigator")
 st.subheader("Analyze AI-generated financial crime cases and identify laundering techniques.")
 
-# Load AI-generated case
-if "current_case" not in st.session_state:
-    st.session_state.current_case = generate_ai_case()
-
-case_description = st.session_state.current_case
+# Display current case
 st.header("📄 Case Report")
-st.write(case_description)
+st.write(st.session_state.current_case)
 
 # Player input (free form)
 player_answer = st.text_area("What money laundering techniques do you identify in this case?", "")
@@ -83,23 +87,28 @@ player_answer = st.text_area("What money laundering techniques do you identify i
 # Submit button
 if st.button("Submit Analysis"):
     if player_answer:
-        feedback = evaluate_response(player_answer, case_description)
+        feedback = evaluate_response(player_answer, st.session_state.current_case)
+        
+        # Extract the score from AI feedback
+        try:
+            score = int([s for s in feedback.split() if s.isdigit()][0])  # Extract first number as score
+        except:
+            score = 0  # Default to 0 if parsing fails
+
+        # Update game stats
+        st.session_state.cases_solved += 1
+        if score >= 50:  # Example threshold for a "correct" answer
+            st.session_state.correct_answers += 1
+
         st.subheader("📋 AI Feedback")
         st.write(feedback)
 
-        # Button to load a new case
-        if st.button("Next Case"):
-            st.session_state.current_case = generate_ai_case()
-            st.experimental_rerun()
-    else:
-        st.warning("Please enter your analysis before submitting.")
+# Button to load a new case
+if st.button("Next Case"):
+    st.session_state.current_case = generate_ai_case()
+    st.experimental_rerun()  # Force refresh to show new case
 
 # Sidebar Stats
 st.sidebar.header("Game Stats")
-if "cases_solved" not in st.session_state:
-    st.session_state.cases_solved = 0
-if "correct_answers" not in st.session_state:
-    st.session_state.correct_answers = 0
-
 st.sidebar.write(f"✅ Cases Solved: {st.session_state.cases_solved}")
 st.sidebar.write(f"🏆 Correct Answers: {st.session_state.correct_answers}")
